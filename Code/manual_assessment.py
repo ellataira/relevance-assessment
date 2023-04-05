@@ -5,7 +5,7 @@ INDEX = 'homework3'
 CLOUD_ID = 'homework3:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyQ3NjJhZDM3NTU4MTY0OWM1ODM3ZTRiYjg5NjI5ZmFiNyQyMWU0ZDM1MDQzNmY0NDA3OGIzZTY0NTMyN2Q0NTUzNg=='
 es = Elasticsearch(request_timeout = 1000, cloud_id = CLOUD_ID, http_auth= ('elastic', '74QCRsRmX0WpC67mIj0PZfDw'))
 SIZE = 200
-QUERIES = ["Black Lives Matter", "Womens rights", "Racial justice", "Disability rights"]
+QUERIES = ["Black Lives Matter", "Womens rights", "Racial justice", "Disability rights", "Social Justice Movements"]
 utils = Utils()
 
 # modify input queries through stemming, shifting to lowercase, and removing stop words
@@ -44,7 +44,7 @@ def es_search(queries):
     return relevant_docs
 
 def save_urls(relevant_docs):
-    file_base = "/Users/ellataira/Desktop/is4200/hw5/doc_urls_query_"
+    file_base = "/Users/ellataira/Desktop/is4200/homework--5-ellataira/Results/doc_urls_query_"
     for query_id, urls in relevant_docs.items():
         file_name = file_base + str(query_id) + ".txt"
         with open(file_name, 'w') as opened:
