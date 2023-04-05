@@ -6,13 +6,12 @@ class Evaluation():
     def __init__(self, ranked_list_path, qrel_path, print_all_queries=False):
         self.ranked_list = {}
         self.qrel = {}
-        self.ranked_list_to_dict(ranked_list_path)
-        self.qrel_to_dict(qrel_path)
-        self.eval_scores = {} # maps qid : (r_p, avg_p, ndcg, precision_at_k, recall_at_k, f1_at_k)
         self.num_rel = {}
         self.print_all_queries = print_all_queries
-        self.k = [5,10, 20, 50, 100]
+        self.k = [5, 10, 20, 50, 100]
         self.recalls = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        self.ranked_list_to_dict(ranked_list_path)
+        self.qrel_to_dict(qrel_path)
 
     """
     qrel file format: 
@@ -45,7 +44,7 @@ class Evaluation():
             for line in opened:
                 split_line = line.split()
                 qID, assessorID, docID, score = split_line
-                score = int(score)
+                score = float(score)
                 if qID not in self.qrel.keys():
                     self.qrel[qID] = {}
                     self.num_rel[qID] = 0
@@ -66,19 +65,20 @@ class Evaluation():
 
         for qid, doc_score_dict in self.ranked_list.items():
             if len(doc_score_dict) > 0:
-                prec_list = []
-                rec_list = []
+                prec_list = {}
+                rec_list = {}
                 num_ret = 0
                 num_rel_ret = 0
                 sum_prec = 0
-
-                for doc, score in doc_score_dict.items():
+                for doc, score in doc_score_dict:
                     num_ret +=1
-                    rel = self.qrel[qid][doc]
+                    try:
+                        rel = self.qrel[qid][doc]
+                    except:
+                        rel = 0 # if the doc isn't in the qrel file, then it is not relevant
 
-                    if rel > 0:
-                        sum_prec += rel * (1 +num_rel_ret) / num_ret
-                        num_rel_ret += rel
+                    sum_prec += rel * (1 +num_rel_ret) / num_ret
+                    num_rel_ret += rel
 
                     prec_list[num_ret] = num_rel_ret / num_ret
                     rec_list[num_ret] = num_rel_ret / self.num_rel[qid]
@@ -86,16 +86,15 @@ class Evaluation():
                 avg_prec = sum_prec / self.num_rel[qid]
                 final_recall = num_rel_ret / self.num_rel[qid]
 
-                for i in range(num_ret +1, 1000): # TODO should it be 1000?
+                for i in range(num_ret + 1, 1001): # TODO should it be 1000?
                     prec_list[i] = num_rel_ret / i
                     rec_list[i] = final_recall
 
-
                 # calculate precisions@k
-                prec_at_k = []
+                prec_at_k = {}
 
                 for cutoff in self.k:
-                    prec_at_k.append(prec_list[cutoff])
+                    prec_at_k[cutoff] = prec_list[cutoff]
 
 
                 # calculate R precision
@@ -120,19 +119,17 @@ class Evaluation():
                     else:
                         prec_list[i] = max_prec
 
-
                 # calculate precision at recall levels
 
-                prec_at_recalls = []
-
                 i = 1
-                for r in self.recalls:
-                    while i < 1000 and rec_list[i] < r:
+                prec_at_recalls = {}
+                for recall in self.recalls:
+                    while i <= 1000 and rec_list[i] < recall:
                         i += 1
                     if i <= 1000:
-                        prec_at_recalls.append(prec_list[i])
+                        prec_at_recalls[recall] = prec_list[i]
                     else:
-                        prec_at_recalls.append(0)
+                        prec_at_recalls[recall] = 0
 
                 if self.print_all_queries :
                     self.eval_print(qid, num_ret, self.num_rel[qid], num_rel_ret, prec_at_recalls, avg_prec, prec_at_k, r_prec)
@@ -143,18 +140,18 @@ class Evaluation():
                 tot_num_rel += self.num_rel[qid]
                 tot_num_rel_ret += num_rel_ret
 
-                for i in range(len(self.k)):
+                for i in self.k:
                     sum_prec_at_cutoffs[i] += prec_at_k[i]
 
-
-                for i in range(len(self.recalls)):
+                for i in self.recalls:
                     sum_prec_at_recalls[i] += prec_at_recalls[i]
 
                 sum_avg_prec += avg_prec
                 sum_r_prec += r_prec
 
         num_topics = len(self.ranked_list)
-        print("Error due to {}\n".format(num_topics))
+        print("Error due to {}".format(num_topics))
+
         for i in self.k:
             avg_prec_at_k[i] = sum_prec_at_cutoffs[i] / num_topics
 
@@ -167,98 +164,55 @@ class Evaluation():
         self.eval_print(num_topics, tot_num_ret, tot_num_rel, tot_num_rel_ret, avg_prec_at_recalls, mean_avg_prec,
                         avg_prec_at_k, avg_r_prec)
 
-
-
-        #     precision_at_k = []
-        #     recall_at_k = []
-        #     f1_at_k = []
-        #
-        #     for k_val in k:
-        #         precision_at_k.append(self.compute_precision(k_val))
-        #         recall_at_k.append(self.compute_recall(k_val))
-        #         f1_at_k.append(self.compute_f1(k_val))
-        #
-        #     r_p = self.compute_r_precision(doc_score_dict qid)
-        #     avg_p = self.compute_avg_precision()
-        #     ndcg = self.compute_ndcg()
-        #
-        #     self.eval_scores[qid] = (r_p, avg_p, ndcg, precision_at_k, recall_at_k, f1_at_k)
-
-    #
-    # def compute_r_precision(self, doc_score_dict, qid):
-    #     num_rel = len(self.qrel[qid])
-    #     num_ret = len(doc_score_dict)
-    #     if num_ret < num_rel:
-    #         r_prec = len(doc_score_dict) / len(self.qrel[qid])
-    #     else:
-    #         frac_num_rel = num_rel - num_ret
-    #         if frac_num_rel > 0:
-    #             r_prec =  (1 - frac_num_rel) * prec_list[num_rel + 1]
-    #         else:
-    #             r_prec = prec_list[num_rel]
-
-
-    def compute_avg_precision(self):
-        pass
-
-    def compute_ndcg(self):
-        pass
-
-    def compute_precision(self, k_val):
-        pass
-
-    def compute_recall(self, k_val):
-        pass
-
-    def compute_f1(self, k_val):
-        pass
-
     def eval_print(self, qid, num_ret, num_rel, num_rel_ret, prec_at_recalls, avg_prec, prec_at_k, r_prec):
-        print("\nQueryid (num: \t {} \n".format(str(qid)))
-        print("Total number of documents over all queries\n")
-        print("\t Retrieved: \t {}".format(str(num_ret)))
-        print("\t Relevant: \t {}".format(str(num_rel)))
-        print("\t Rel_ret: \t {}".format(str(num_rel_ret)))
-        print("Interpolated Recall - Precision Averages:\n")
+        print("Queryid (Num): \t {} ".format(int(qid)))
+        print("Total number of documents over all queries")
+        print("\t Retrieved: \t {}".format(int(num_ret)))
+        print("\t Relevant: \t {}".format(int(num_rel)))
+        print("\t Rel_ret: \t {}".format(int(num_rel_ret)))
+        print("Interpolated Recall - Precision Averages:")
 
         s_time = 0.00
         for r in self.recalls:
-            print(" \t at " + str(r) + " \t "+ str(prec_at_recalls[r]) + "\n")
+            print(" \t at {} \t {:0.4f}".format(r, prec_at_recalls[r]) )
 
-        print("Average precision (non-interpolated) for all rel docs(averaged over queries)\n")
-        print("\t \t {}\n".format(str(avg_prec)) )
-        print("Precision:\n")
+        print("Average precision (non-interpolated) for all rel docs(averaged over queries)")
+        print("\t \t {:0.4f}".format(float(avg_prec)) )
+        print("Precision:")
 
         for kval in self.k:
-            print("\t At \t {} docs: \t {}\n".format(str(kval), str(prec_at_k[kval])))
+            print("\t At \t {:0.4f} docs: \t {:0.4f}".format(float(kval), float(prec_at_k[kval])))
 
-        print("R-Precision (precision after R (= num_rel for a query) docs retrieved):\n")
-        print("\t Exact: \t {}\n".format(str(r_prec)))
+        print("R-Precision (precision after R (= num_rel for a query) docs retrieved):")
+        print("\t Exact: \t {:0.4f}".format(float(r_prec)))
 
 def main(argv):
-    # python -q qrel ranks
+    # evalution.py -q qrel ranks
+
     args = sys.argv[1:]
 
-    if len(args) > 2:
+    if len(args) == 3: # if -q
         qrel = args[1]
         ranks = args[2]
         q = True
         eval = Evaluation(ranks, qrel, print_all_queries=True)
-    else:
+        eval.evaluate()
+    if len(args) == 2: # if not -q
         qrel = args[0]
         ranks = args[1]
         q = False
         eval = Evaluation(ranks, qrel)
+        eval.evaluate()
+    else:
+        print("invalid input; Usage: evaluation.py [-q] <qrel_file> <trec_file>")
+        sys.exit(1)
 
+
+
+if __name__ == "__main__":
+    ranked = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/es_builtin6.txt"
+    qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/qrels.adhoc.51-100.AP89.txt"
+    # ranked=  "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/es_builtin.txt"
+    # qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/qrel.txt"
+    eval = Evaluation(ranked, qrel, print_all_queries=False)
     eval.evaluate()
-
-
-
-
-
-
-# if __name__ == "__main__":
-#     qrel = "/Users/ellataira/Desktop/is4200/homework--5-ellataira/Results/qrels.adhoc.51-100.AP89.txt"
-#     ranked = "/Users/ellataira/Desktop/is4200/homework--5-ellataira/Results/es_builtin6.txt"
-#     eval = Evaluation(ranked, qrel)
-#     eval.evaluate()
