@@ -25,7 +25,10 @@ class Evaluation():
         with open(ranked_list_path, 'rb') as opened:
             for line in opened:
                 split_line = line.split()
-                queryID, q0, docID, rank, score, exp = split_line
+                if len(split_line) == 5:
+                    queryID, q0, docID, rank, score, exp = split_line
+                elif len(split_line) == 3:
+                    queryID, docID, score = split_line
                 # init dict for qID if necessary
                 if queryID not in self.ranked_list.keys():
                     self.ranked_list[queryID]= {}
@@ -210,9 +213,9 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    ranked = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/es_builtin6.txt"
-    qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/qrels.adhoc.51-100.AP89.txt"
-    # ranked=  "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/es_builtin.txt"
-    # qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/qrel.txt"
+    # ranked = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/es_builtin6.txt"
+    # qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/qrels.adhoc.51-100.AP89.txt"
+    ranked=  "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/es_results.txt"
+    qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/qrel.txt"
     eval = Evaluation(ranked, qrel, print_all_queries=False)
     eval.evaluate()
