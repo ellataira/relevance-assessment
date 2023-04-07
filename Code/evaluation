@@ -13,14 +13,7 @@ class Evaluation():
         self.ranked_list_to_dict(ranked_list_path)
         self.qrel_to_dict(qrel_path)
 
-    """
-    qrel file format: 
-        queryID assessorID docID score
-        
-    ranked list format: 
-        85 Q0 AP890108-0030 1 14.313693 Exp
-        queryID [Q0] docID rank(x/N) score [Exp] 
-    """
+    # converts model rankings doc to dictinoary
     def ranked_list_to_dict(self, ranked_list_path):
         with open(ranked_list_path, 'rb') as opened:
             for line in opened:
@@ -42,6 +35,7 @@ class Evaluation():
             self.ranked_list[query_no] = sorted_doc_scores
 
 
+    # converts qrel score doc to dictionary
     def qrel_to_dict(self, qrel_path):
         with open(qrel_path, 'rb') as opened:
             for line in opened:
@@ -55,6 +49,7 @@ class Evaluation():
                 self.num_rel[qID] += score
         opened.close()
 
+    # runs evaluation using given rankings and qrel
     def evaluate(self):
         tot_num_ret = 0
         tot_num_rel = 0
@@ -240,6 +235,7 @@ class Evaluation():
         self.eval_print(num_topics, tot_num_ret, tot_num_rel, tot_num_rel_ret, avg_prec_at_recalls, mean_avg_prec,
                         avg_prec_at_k, avg_r_prec, avg_ncdg, avg_recall_at_k, avg_f1_at_k, mean_avg_rec, mean_avg_f1)
 
+    # prints out all scores for queries
     def eval_print(self, qid, num_ret, num_rel, num_rel_ret, prec_at_recalls, avg_prec, prec_at_k, r_prec, ndcg,
                    recall_at_k, f1_at_k, avg_recall, avg_f1):
         print("Queryid (Num): \t {} ".format(int(qid)))
@@ -278,6 +274,8 @@ class Evaluation():
         print("\nR-Precision (precision after R (= num_rel for a query) docs retrieved):")
         print("\t Exact: \t {:0.4f}".format(float(r_prec)))
 
+
+# command line argument parser
 def main(argv):
     # ./evalution -q qrel ranks
 
