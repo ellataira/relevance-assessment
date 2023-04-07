@@ -212,6 +212,7 @@ def main(argv):
 
 
 
+# TODO FIX INPUT PARSER
 if __name__ == "__main__":
     # ranked = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/es_builtin6.txt"
     # qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/qrels.adhoc.51-100.AP89.txt"
