@@ -49,7 +49,7 @@ def es_search(queries):
     return relevant_docs
 
 def save_urls(relevant_docs):
-    file_base = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/doc_urls_query_"
+    file_base = "/Users/ellataira/Desktop/homework--5-ellataira/Results/doc_urls_query_"
     for query_id, docs in relevant_docs.items():
         file_name = file_base + str(query_id) + ".txt"
         with open(file_name, 'w') as opened:

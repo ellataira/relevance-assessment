@@ -301,12 +301,19 @@ def main(argv):
 
 
 
-# TODO FIX INPUT PARSER
 if __name__ == "__main__":
-    ranked = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/es_builtin6.txt"
-    qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/Results/qrels.adhoc.51-100.AP89.txt"
-    # ranked=  "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/es_results.txt"
-    # qrel = "/Users/ellataira/Library/Mobile Documents/com~apple~CloudDocs/Desktop/is4200/homework--5-ellataira/qrel.txt"
-    eval = Evaluation(ranked, qrel, print_all_queries=False)
-    eval.evaluate()
-    # main(sys.argv)
+    # ranked = "/Users/ellataira/Desktop/homework--5-ellataira/Results/es_builtin6.txt"
+    # qrel = "/Users/ellataira/Desktop/homework--5-ellataira/Results/qrels.adhoc.51-100.AP89.txt"
+    # ranked=  "/Users/ellataira/Desktop/homework--5-ellataira/es_results.txt"
+    # qrel = "/Users/ellataira/Desktop/homework--5-ellataira/qrel.txt"
+    # eval = Evaluation(ranked, qrel, print_all_queries=False)
+    # eval.evaluate()
+    main(sys.argv)
+    """
+    TO RUN:
+    ./Code/evaluation qrel.txt es_results.txt
+    ./Code/evaluation -q qrel.txt es_results.txt
+    ./Code/evaluation Results/qrels.adhoc.51-100.AP89.txt Results/es_builtin6.txt
+    
+    """
+
